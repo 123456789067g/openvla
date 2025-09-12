@@ -24,11 +24,11 @@ vla = AutoModelForVision2Seq.from_pretrained(
 ).to(device)
 
 # ========== 加载照片 ==========
-image_path = "picture/IMG_2581.HEIC"   # 修改成你自己的路径
+image_path = "Image.jpg"  # 使用你的图像路径
 image = Image.open(image_path)
 
 # ========== Prompt ==========
-prompt = "In: What action should the robot take to pick up the object?\nOut:"
+prompt = "In: Catch the black object\nOut:"
 
 # ========== 处理输入 ==========
 inputs = processor(prompt, image).to(device, dtype=dtype)
