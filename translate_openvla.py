@@ -1,7 +1,19 @@
 # run_vla_and_move.py
 from typing import List, Tuple
 import time, math
+import requests
 import Robot as fr   # 你的 robot.py 模块，别名 fr，避免名字冲突
+
+API_URL = "http://127.0.0.1:8000/infer"   # 学校电脑访问 Lambda 的地址
+
+# ========== 从 API 获取动作 ==========
+def fetch_action_from_server(image_path: str) -> List[float]:
+    """上传图片到 Lambda API，返回 VLA 动作数组"""
+    files = {"file": open(image_path, "rb")}
+    resp = requests.post(API_URL, files=files)
+    resp.raise_for_status()
+    data = resp.json()
+    return data["action"]   # 直接返回坐标数组
 
 # ========== 初始化连接 ==========
 def connect_and_init_robot(ip: str) -> "fr.RPC":
@@ -82,16 +94,16 @@ if __name__ == "__main__":
     ip = "192.168.58.2"
     r = connect_and_init_robot(ip)
 
-    # —— 替换为你从 OpenVLA 得到的动作 ——
-    vla_action = [-0.01877375, 0.0002234, -0.00076089,
-                  -0.03015281, -0.01283816, 0.01605127, 0.0]
+    # —— 从服务器获取一张图的动作 ——
+    # TODO: 替换成你实际的相机拍摄路径，比如 "frame.jpg"
+    vla_action = fetch_action_from_server("test.jpg")
 
     # 打印调试命令
     print("FR script-like commands:")
     for s in translate_action_to_strings(vla_action):
         print("  ", s)
 
-    # 转换坐标（如 VLA 输出是米/弧度，请改成 scale_xyz=1000.0, scale_rpy=180.0/math.pi）
+    # 转换坐标
     pose6, grip = scale_pose(vla_action, scale_xyz=1.0, scale_rpy=1.0)
 
     # 执行动作
